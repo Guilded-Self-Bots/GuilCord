@@ -12,12 +12,12 @@ discord_client = discord.Client(intents=intents)
 guilded_client = GuildedClient()
 
 # --- Channel IDs (replace these with your own) ---
-DISCORD_CHANNEL_ID = 1419347716336652399  # Replace with your Discord channel ID (integer)
-GUILDED_CHANNEL_ID = "02738b0e-9898-42d2-ba58-a8166e022e49"   # Replace with your Guilded channel ID (string)
+DISCORD_CHANNEL_ID = DISCORDCHANNELID  # Replace with your Discord channel ID (integer)
+GUILDED_CHANNEL_ID = "GUILDEDCHANNELID"   # Replace with your Guilded channel ID (string)
 
 # --- Tokens (replace with your bot tokens) ---
-DISCORD_BOT_TOKEN = "MTQxOTMyODcyOTYyMDE1NjY0Ng.GO0djX.H-KlkbQBOc0BVKu78PhvUme22m1Ndwix2WrxU0"
-GUILDED_BOT_TOKEN = "gapi_0e4vkcSar3JWvPDHrLYH0JXI3rRhgrDoV4nb9rFKsrIcP/g5BLUTAg59HoGuEJlbyTyplWjsNuueuZEXxawwnA=="
+DISCORD_BOT_TOKEN = "DISCORDBOTTOKEN"
+GUILDED_BOT_TOKEN = "GUILDEDBOTTOKEN"
 
 # Shared queue
 message_queue = asyncio.Queue()
