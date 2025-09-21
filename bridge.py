@@ -12,8 +12,8 @@ discord_client = discord.Client(intents=intents)
 guilded_client = GuildedClient()
 
 # --- Channel IDs (replace these with your own) ---
-DISCORD_CHANNEL_ID = 1419274388469055580  # Replace with your Discord channel ID (integer)
-GUILDED_CHANNEL_ID = "7e430fd3-836c-45a6-9c32-645762596458"   # Replace with your Guilded channel ID (string)
+DISCORD_CHANNEL_ID = 1419347716336652399  # Replace with your Discord channel ID (integer)
+GUILDED_CHANNEL_ID = "02738b0e-9898-42d2-ba58-a8166e022e49"   # Replace with your Guilded channel ID (string)
 
 # --- Tokens (replace with your bot tokens) ---
 DISCORD_BOT_TOKEN = "MTQxOTMyODcyOTYyMDE1NjY0Ng.GO0djX.H-KlkbQBOc0BVKu78PhvUme22m1Ndwix2WrxU0"
@@ -48,7 +48,7 @@ async def on_message(message):
         print(f"[Guilded -> Queue] {message.author.name}: {message.content}")
         await message_queue.put(("guilded", message.content, message.author.name))
 
-# --- Forwarder ---
+# --- Forwarder Task ---
 async def forward_messages():
     while True:
         source, content, author = await message_queue.get()
@@ -61,9 +61,7 @@ async def forward_messages():
                         "Authorization": f"Bearer {GUILDED_BOT_TOKEN}",
                         "Content-Type": "application/json"
                     }
-                    payload = {
-                        "content": f"**{author}:** {content}"
-                    }
+                    payload = {"content": f"**{author} (Discord):** {content}"}
                     async with session.post(url, headers=headers, json=payload) as resp:
                         if resp.status == 201:
                             print(f"[Forwarded] Discord -> Guilded: {author}: {content}")
@@ -77,14 +75,55 @@ async def forward_messages():
             try:
                 channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
                 if channel:
-                    await channel.send(f"**{author}:** {content}")
+                    await channel.send(f"**{author} (Guilded):** {content}")
                     print(f"[Forwarded] Guilded -> Discord: {author}: {content}")
             except Exception as e:
                 print(f"❌ Error sending to Discord: {e}")
 
-# --- Run both bots ---
+# --- Console Input Task ---
+async def console_input():
+    loop = asyncio.get_event_loop()
+    while True:
+        msg = await loop.run_in_executor(None, input, "> ")
+        if not msg.strip():
+            continue
+        if msg.strip().lower() == "/quit":
+            print("🛑 Shutting down bots...")
+            await discord_client.close()
+            await guilded_client.close()
+            break
+
+        # Send to Discord
+        try:
+            channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
+            if channel:
+                await channel.send(f"**[Console]:** {msg}")
+                print(f"[Console -> Discord] {msg}")
+        except Exception as e:
+            print(f"❌ Error sending console message to Discord: {e}")
+
+        # Send to Guilded
+        try:
+            async with aiohttp.ClientSession() as session:
+                url = f"https://www.guilded.gg/api/v1/channels/{GUILDED_CHANNEL_ID}/messages"
+                headers = {
+                    "Authorization": f"Bearer {GUILDED_BOT_TOKEN}",
+                    "Content-Type": "application/json"
+                }
+                payload = {"content": f"**[Console]:** {msg}"}
+                async with session.post(url, headers=headers, json=payload) as resp:
+                    if resp.status == 201:
+                        print(f"[Console -> Guilded] {msg}")
+                    else:
+                        text = await resp.text()
+                        print(f"❌ Guilded API error {resp.status}: {text}")
+        except Exception as e:
+            print(f"❌ Error sending console message to Guilded: {e}")
+
+# --- Main ---
 async def main():
     asyncio.create_task(forward_messages())
+    asyncio.create_task(console_input())
     await asyncio.gather(
         discord_client.start(DISCORD_BOT_TOKEN),
         guilded_client.start(GUILDED_BOT_TOKEN),
