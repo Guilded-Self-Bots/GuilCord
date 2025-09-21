@@ -62,7 +62,7 @@ async def forward_messages():
                         "Content-Type": "application/json"
                     }
                     payload = {
-                        "content": f"**{author} (Discord):** {content}"
+                        "content": f"**{author}:** {content}"
                     }
                     async with session.post(url, headers=headers, json=payload) as resp:
                         if resp.status == 201:
@@ -77,7 +77,7 @@ async def forward_messages():
             try:
                 channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
                 if channel:
-                    await channel.send(f"**{author} (Guilded):** {content}")
+                    await channel.send(f"**{author}:** {content}")
                     print(f"[Forwarded] Guilded -> Discord: {author}: {content}")
             except Exception as e:
                 print(f"❌ Error sending to Discord: {e}")
